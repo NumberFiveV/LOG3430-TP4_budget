@@ -1,17 +1,30 @@
-name: Python package
+name: Git Bisect Workflow
+
 on: [push]
+
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-              with:
-                fetch-depth: 0
-            - name: Setup Python
-              uses: actions/setup-python@v4
-              with:
-                python-version: "3.9"
-            - name: Install packages
-              run: pip install -r requirements.txt
-            - name: Run tests
-              run: python manage.py test
+  bisect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Ensures full commit history for bisect
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install packages
+        run: pip install -r requirements.txt
+
+      - name: Define commit hashes for bisect
+        env:
+          GOOD_HASH: "e4cfc6f77ebbe2e23550ddab682316ab4ce1c03c"
+        run: |
+          echo "GOOD_HASH=$GOOD_HASH" >> $GITHUB_ENV
+          echo "BAD_HASH=$(git rev-parse HEAD)" >> $GITHUB_ENV  # Sets BAD_HASH to the latest commit
+
+      - name: Run git bisect with myscript.py
+        run: python myscript.py
